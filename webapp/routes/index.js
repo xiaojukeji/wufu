@@ -3,7 +3,7 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: '五福吉祥' });
+  res.render('index', { title: '某宝五福互换神器' });
 });
 
 module.exports = router;
