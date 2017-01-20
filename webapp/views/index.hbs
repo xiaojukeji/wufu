@@ -1,0 +1,177 @@
+<ul class="nav nav-tabs">
+  <li class="active"><a data-toggle="tab" href="#home">免费换福</a></li>
+  <li><a data-toggle="tab" href="#menu1">有偿收福</a></li>
+  <li><a data-toggle="tab" href="#menu2">有偿送福</a></li>
+</ul>
+
+<div class="tab-content">
+  <div id="home" class="tab-pane fade in active">
+    <form id="exchangeForm">
+      <div class="form-group">
+        <label for="alipay_ex">支付宝账号：</label>
+        <input type="input" class="form-control" id="alipay_ex" name="alipay" placeholder="支付宝账号">
+        <small id="alipayHelp" class="form-text text-muted">仅用于用于匹对成功后互相联系。</small>
+      </div>
+      <div class="form-group">
+        <label for="fu_ex_1">我用：</label>
+        <select class="form-control" name="have" id="fu_ex_1">
+          <option value="1">爱国福</option>
+          <option value="2">富强福</option>
+          <option value="3">和谐福</option>
+          <option value="4">友善福</option>
+          <option value="5">敬业福</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="fu_ex_2">换取：</label>
+        <select class="form-control" name="want" id="fu_ex_2">
+          <option value="1">爱国福</option>
+          <option value="2">富强福</option>
+          <option value="3">和谐福</option>
+          <option value="4">友善福</option>
+          <option value="5">敬业福</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <button id="submitExchange" class="btn btn-primary">查看匹配</button>
+      </div>
+    </form>
+    <table id="matchedTable" class="table table-striped">
+      <thead>
+        <tr>
+          <th>匹配用户</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="exchangeMatched">
+      </tbody>
+    </table>
+  </div>
+  <div id="menu1" class="tab-pane fade">
+    <div class="form-group">
+      <label for="fu_sale_1">我求：</label>
+      <select class="form-control" id="fu_sale_1">
+        <option value="1">爱国福</option>
+        <option value="2">富强福</option>
+        <option value="3">和谐福</option>
+        <option value="4">友善福</option>
+        <option value="5">敬业福</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <button id="submitBuy" class="btn btn-primary">提交</button>
+    </div>
+    <table id="buyTable" class="table table-striped">
+      <thead>
+        <tr>
+          <th>福</th>
+          <th>元</th>
+          <th>支付宝账号</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="buyMatched">
+      </tbody>
+    </table>
+  </div>
+  <div id="menu2" class="tab-pane fade">
+    <form id="saleForm">
+      <div class="form-group">
+        <label for="alipay_sale">支付宝账号：</label>
+        <input type="input" class="form-control" id="alipay_sale" name="alipay" placeholder="支付宝账号">
+        <small id="alipayHelp" class="form-text text-muted">仅用于对方联系你。</small>
+      </div>
+      <div class="form-group">
+        <label for="fu_sale">我送：</label>
+        <select class="form-control" name="sale" id="fu_sale">
+          <option value="1">爱国福</option>
+          <option value="2">富强福</option>
+          <option value="3">和谐福</option>
+          <option value="4">友善福</option>
+          <option value="5">敬业福</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="fu_price">元：</label>
+        <input type="input" class="form-control" name="price" id="fu_price" placeholder="价钱">
+      </div>
+      <div class="form-group">
+        <button id="submitSale" type="submit" class="btn btn-primary">提交</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<a href="/about">联系作者</a>
+
+<script>
+  $(function(){
+
+    var search = function() {
+      $.post('/api/wufu/exchange',$('#exchangeForm').serialize(), function(data) {
+        $('#exchangeMatched').html('');
+        if (!data || !data.length) alert('没有匹配，请稍后再试。');
+        data = data || [];
+        data.forEach(function(match) {
+          var html = '<tr><td>';
+          html += match.alipay;
+          html += '</td><td>';
+          html += '<button data-wufu="'+match._id+'" type="submit" class="btn btn-danger">对方信息已经失效--删除</button>';
+          html += '</td></tr>';
+          $('#exchangeMatched').append(html);
+        });
+      });
+    };
+
+    $('#submitExchange').on('click', function(event) {
+      console.log($('#exchangeForm'));
+      event.preventDefault();
+      search();
+    });
+
+    var searchBuy = function() {
+      $.get('/api/wufu/sale/'+$('#fu_sale_1').val(), function(data) {
+        $('#buyMatched').html('');
+        if (!data || !data.length) alert('没有匹配，请稍后再试。');
+        data = data || [];
+        data.forEach(function(match) {
+          var html = '<tr><td>';
+          html += match.name;
+          html += '</td><td>'
+          html += match.price;
+          html += '</td><td>';
+          html += match.alipay;
+          html += '</td><td>';
+          html += '<button data-wufu="'+match._id+'" type="submit" class="btn btn-danger">对方信息已经失效--删除</button>';
+          html += '</td></tr>';
+          $('#buyMatched').append(html);
+        });
+      });
+    };
+
+    $('#submitBuy').on('click', function(event) {
+      event.preventDefault();
+      searchBuy();
+    });
+
+    $('#matchedTable').delegate('button', 'click', function() {
+      $.get('/api/wufu/delete/'+$(this).data('wufu'), function(){});
+      search();
+    });
+
+    $('#buyTable').delegate('button', 'click', function() {
+      $.get('/api/wufu/sale/delete/'+$(this).data('wufu'), function(){});
+      searchBuy();
+    });
+
+    $('#submitSale').on('click', function(event) {
+      event.preventDefault();
+      $.post('/api/wufu/sale',$('#saleForm').serialize(), function(data) {
+        console.log(data);
+        alert("录入成功。");
+      });
+    });
+  });
+
+
+</script>
