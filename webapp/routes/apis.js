@@ -17,6 +17,7 @@ var WufuExchange = new Schema({
     alipay  : String,
     have    : String,
     want    : String,
+    date    : Date,
 });
 
 var WufuSale = new Schema({
@@ -31,7 +32,7 @@ var WufuSaleModel = mongoose.model('WufuSale', WufuSale);
 
 router.get('/wufu/sale/:id', function(req, res, next) {
   var id = req.params.id;
-  WufuSaleModel.find({sale: id}).sort('price').exec(function(err, docs) {
+  WufuSaleModel.find({sale: id}).sort('price').limit(10).exec(function(err, docs) {
     if (err) return console.error(err);
     docs = docs || [];
     docs.forEach(function(v){
@@ -70,13 +71,14 @@ router.post('/wufu/exchange', function(req, res, next) {
     want: want
   };
   var update = {
+    date: new Date()
   };
   var options = { upsert: true };
   WufuExchangeModel.findOneAndUpdate(query, update, options, function(error, result) {
     if (error) return;
   });
 
-  WufuExchangeModel.find({have: want, want: have}).limit(10).exec(function(error, result) {
+  WufuExchangeModel.find({have: want, want: have}).sort('-date').limit(10).exec(function(error, result) {
     if (error) return;
     res.json(result);
   });
